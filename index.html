@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escape The Maze</title>
+    <title>Escapa del Laberinto</title>
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-    <div class="contenedor">
-        <h1>Escape The Maze</h1>
-        <div class="info">
-            <p>Usa las teclas <strong>W A S D</strong> para moverte</p>
-            <p>Tiempo: <span id="cronometro">0:00</span></p>
-        </div>
-        <canvas id="canvas" width="600" height="600"></canvas>
-        <div id="mensaje-victoria" class="oculto">
-            <h2>¡Felicidades! Has escapado del laberinto</h2>
-            <p>Tiempo final: <span id="tiempo-final"></span></p>
-            <button onclick="location.reload()">Jugar de nuevo</button>
-        </div>
+    <!-- Canvas principal del juego -->
+    <canvas id="canvas" width="800" height="600"></canvas>
+
+    <!-- HUD del juego (se muestra solo durante el juego) -->
+    <div id="hud" class="oculto">
+        <div class="hud-item">Nivel: <span id="nivel-actual">1</span></div>
+        <div class="hud-item">Tiempo: <span id="cronometro">0:00</span></div>
+        <div class="hud-item">Muertes: <span id="contador-muertes">0</span></div>
+        <button id="btn-reiniciar" class="btn-pequeno">Reiniciar</button>
     </div>
+
     <script src="juego.js"></script>
 </body>
 </html>
