@@ -1,5 +1,4 @@
 // ==================== MAZE HUNTERS ====================
-// Juego arcade inspirado en clásicos como Pac-Man
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -29,16 +28,20 @@ let intervaloTiempo = null;
 let animacionFrame = null;
 let tiempoAnimacion = 0;
 
+// Variables para navegación de menús
+let opcionSeleccionada = 0;
+let totalOpcionesMenu = 2; // Para pantalla inicio (Jugar, Seleccionar Nivel)
+
 // Variables del jugador
 let jugador = {
-    x: 0,
-    y: 0,
+    x: 1.5,
+    y: 1.5,
     vidas: 3,
     vidaMaxima: 100,
     vidaActual: 100,
     invulnerable: false,
     tiempoInvulnerable: 0,
-    velocidad: 0.12,
+    velocidad: 0.13,  // Velocidad balanceada
     radio: 0.35  // Radio del jugador en celdas
 };
 
@@ -212,26 +215,34 @@ function dibujarPantallaInicio() {
 
     // Botón Jugar
     const btnJugar = { x: 250, y: 300, ancho: 300, alto: 60 };
-    ctx.fillStyle = tema.pared;
+    ctx.fillStyle = opcionSeleccionada === 0 ? '#ffffff' : tema.pared;
     ctx.fillRect(btnJugar.x, btnJugar.y, btnJugar.ancho, btnJugar.alto);
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = opcionSeleccionada === 0 ? tema.pared : '#000000';
     ctx.font = 'bold 32px Arial';
     ctx.fillText('JUGAR', config.ancho / 2, btnJugar.y + 42);
 
     // Botón Niveles
     const btnNiveles = { x: 250, y: 390, ancho: 300, alto: 60 };
-    ctx.fillStyle = '#5f27cd';
+    ctx.fillStyle = opcionSeleccionada === 1 ? '#ffffff' : '#5f27cd';
     ctx.fillRect(btnNiveles.x, btnNiveles.y, btnNiveles.ancho, btnNiveles.alto);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = opcionSeleccionada === 1 ? '#5f27cd' : '#ffffff';
     ctx.font = 'bold 28px Arial';
     ctx.fillText('SELECCIONAR NIVEL', config.ancho / 2, btnNiveles.y + 40);
 
     // Instrucciones
     ctx.fillStyle = '#ffffff';
-    ctx.font = '18px Arial';
-    ctx.fillText('Usa las FLECHAS del teclado para moverte', config.ancho / 2, 500);
-    ctx.fillText('Evita a los enemigos y sus disparos', config.ancho / 2, 530);
-    ctx.fillText('Llega al portal para ganar', config.ancho / 2, 560);
+    ctx.font = '16px Arial';
+    ctx.fillText('Usa WASD/FLECHAS para moverte • ENTER para seleccionar', config.ancho / 2, 490);
+    ctx.fillText('Evita a los enemigos y sus disparos', config.ancho / 2, 515);
+    ctx.fillText('Llega al portal para ganar', config.ancho / 2, 540);
+
+    // Créditos
+    ctx.fillStyle = tema.pared;
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText('Desarrollado por', config.ancho / 2, 570);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '16px Arial';
+    ctx.fillText('Alan Emmanuel Ortiz Angulo', config.ancho / 2, 590);
 }
 
 function dibujarPantallaSeleccionNivel() {
@@ -256,22 +267,27 @@ function dibujarPantallaSeleccionNivel() {
         const y = espacioY + (i - 1) * 100;
         const desbloqueado = i <= nivelesDesbloqueados;
         const temaColor = temas[i].pared;
+        const seleccionado = opcionSeleccionada === (i - 1);
 
         // Caja del nivel
-        ctx.fillStyle = desbloqueado ? temaColor : '#555555';
+        if (desbloqueado) {
+            ctx.fillStyle = seleccionado ? '#ffffff' : temaColor;
+        } else {
+            ctx.fillStyle = '#555555';
+        }
         ctx.fillRect(200, y, 400, 70);
 
         // Texto del nivel
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = (desbloqueado && seleccionado) ? temaColor : '#000000';
         ctx.font = 'bold 28px Arial';
         const texto = desbloqueado ? niveles[i].nombre : '🔒 Bloqueado';
         ctx.fillText(texto, config.ancho / 2, y + 45);
     }
 
     // Botón volver
-    ctx.fillStyle = '#ff4757';
+    ctx.fillStyle = opcionSeleccionada === 3 ? '#ffffff' : '#ff4757';
     ctx.fillRect(300, 500, 200, 50);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = opcionSeleccionada === 3 ? '#ff4757' : '#ffffff';
     ctx.font = 'bold 25px Arial';
     ctx.fillText('VOLVER', config.ancho / 2, 535);
 }
@@ -320,16 +336,16 @@ function dibujarPantallaGameOver() {
     ctx.fillText('Has sido derrotado', config.ancho / 2, 280);
 
     // Botón reintentar
-    ctx.fillStyle = '#00d4ff';
+    ctx.fillStyle = opcionSeleccionada === 0 ? '#ffffff' : '#00d4ff';
     ctx.fillRect(250, 340, 300, 60);
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = opcionSeleccionada === 0 ? '#00d4ff' : '#000000';
     ctx.font = 'bold 30px Arial';
     ctx.fillText('REINTENTAR', config.ancho / 2, 380);
 
     // Botón menú
-    ctx.fillStyle = '#5f27cd';
+    ctx.fillStyle = opcionSeleccionada === 1 ? '#ffffff' : '#5f27cd';
     ctx.fillRect(250, 420, 300, 60);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = opcionSeleccionada === 1 ? '#5f27cd' : '#ffffff';
     ctx.fillText('MENÚ PRINCIPAL', config.ancho / 2, 460);
 }
 
@@ -357,24 +373,35 @@ function dibujarPantallaVictoria() {
 
     // Botones
     if (nivelActual < 3) {
-        ctx.fillStyle = tema.pared;
+        ctx.fillStyle = opcionSeleccionada === 0 ? '#ffffff' : tema.pared;
         ctx.fillRect(250, 340, 300, 60);
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = opcionSeleccionada === 0 ? tema.pared : '#000000';
         ctx.font = 'bold 30px Arial';
         ctx.fillText('SIGUIENTE NIVEL', config.ancho / 2, 380);
     } else {
+        // Juego completado - mostrar créditos
         ctx.fillStyle = '#4caf50';
-        ctx.fillRect(250, 340, 300, 60);
-        ctx.fillStyle = '#000000';
         ctx.font = 'bold 28px Arial';
-        ctx.fillText('¡JUEGO COMPLETADO!', config.ancho / 2, 380);
+        ctx.fillText('¡JUEGO COMPLETADO!', config.ancho / 2, 340);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '20px Arial';
+        ctx.fillText('Gracias por jugar', config.ancho / 2, 380);
+
+        // Créditos finales
+        ctx.fillStyle = tema.portal;
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('Desarrollado por', config.ancho / 2, 420);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText('Alan Emmanuel Ortiz Angulo', config.ancho / 2, 445);
     }
 
-    ctx.fillStyle = '#5f27cd';
-    ctx.fillRect(250, 420, 300, 60);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = opcionSeleccionada === 1 ? '#ffffff' : '#5f27cd';
+    ctx.fillRect(250, nivelActual < 3 ? 420 : 480, 300, 60);
+    ctx.fillStyle = opcionSeleccionada === 1 ? '#5f27cd' : '#ffffff';
     ctx.font = 'bold 30px Arial';
-    ctx.fillText('MENÚ PRINCIPAL', config.ancho / 2, 460);
+    ctx.fillText('MENÚ PRINCIPAL', config.ancho / 2, nivelActual < 3 ? 460 : 520);
 }
 
 // ==================== FUNCIONES DE DIBUJO ====================
@@ -401,8 +428,8 @@ function dibujarLaberinto() {
 
 function dibujarJugador() {
     const tema = temas[nivelActual];
-    const x = jugador.x * config.tamañoCelda + config.tamañoCelda / 2;
-    const y = jugador.y * config.tamañoCelda + config.tamañoCelda / 2;
+    const x = jugador.x * config.tamañoCelda;
+    const y = jugador.y * config.tamañoCelda;
     const radio = config.tamañoCelda * 0.35;
 
     // Efecto de parpadeo si es invulnerable
@@ -439,8 +466,8 @@ function dibujarMeta() {
     for (let fila = 0; fila < mapaActual.length; fila++) {
         for (let col = 0; col < mapaActual[fila].length; col++) {
             if (mapaActual[fila][col] === 2) {
-                metaX = col * config.tamañoCelda + config.tamañoCelda / 2;
-                metaY = fila * config.tamañoCelda + config.tamañoCelda / 2;
+                metaX = (col + 0.5) * config.tamañoCelda;
+                metaY = (fila + 0.5) * config.tamañoCelda;
             }
         }
     }
@@ -468,8 +495,8 @@ function dibujarEnemigos() {
     const tema = temas[nivelActual];
 
     enemigos.forEach(enemigo => {
-        const x = enemigo.x * config.tamañoCelda + config.tamañoCelda / 2;
-        const y = enemigo.y * config.tamañoCelda + config.tamañoCelda / 2;
+        const x = enemigo.x * config.tamañoCelda;
+        const y = enemigo.y * config.tamañoCelda;
         const latido = Math.sin(tiempoAnimacion * 0.008) * 2 + 13;
 
         // Sombra
@@ -501,8 +528,8 @@ function dibujarProyectiles() {
     const tema = temas[nivelActual];
 
     proyectiles.forEach(proyectil => {
-        const x = proyectil.x * config.tamañoCelda + config.tamañoCelda / 2;
-        const y = proyectil.y * config.tamañoCelda + config.tamañoCelda / 2;
+        const x = proyectil.x * config.tamañoCelda;
+        const y = proyectil.y * config.tamañoCelda;
 
         // Efecto de estela
         ctx.beginPath();
@@ -578,25 +605,25 @@ function cargarNivel(nivel) {
     // Copiar mapa
     mapaActual = datosNivel.mapa.map(fila => [...fila]);
 
-    // Posicionar jugador
-    jugador.x = datosNivel.jugadorInicio.x;
-    jugador.y = datosNivel.jugadorInicio.y;
+    // Posicionar jugador en el centro de la celda
+    jugador.x = datosNivel.jugadorInicio.x + 0.5;
+    jugador.y = datosNivel.jugadorInicio.y + 0.5;
     jugador.vidas = 3;
     jugador.vidaActual = jugador.vidaMaxima;
     jugador.invulnerable = false;
 
-    // Crear enemigos con mayor dificultad
+    // Crear enemigos con dificultad moderada
     enemigos = datosNivel.enemigos.map(e => ({
-        x: e.x,
-        y: e.y,
+        x: e.x + 0.5,
+        y: e.y + 0.5,
         tipo: e.tipo,
         direccionX: 0,
         direccionY: 0,
-        velocidad: e.tipo === 'cazador' ? 0.08 : 0.05,  // Velocidad aumentada
+        velocidad: e.tipo === 'cazador' ? 0.06 : 0.04,  // Velocidad aumentada
         cooldownDisparo: 0,
         estado: 'patrulla',
-        objetivoX: e.x,
-        objetivoY: e.y,
+        objetivoX: e.x + 0.5,
+        objetivoY: e.y + 0.5,
         radio: 0.3  // Radio para colisiones
     }));
 
@@ -626,8 +653,8 @@ function moverJugador(dx, dy) {
         jugador.y = nuevaY;
 
         // Verificar si llegó a la meta
-        const gridX = Math.round(jugador.x);
-        const gridY = Math.round(jugador.y);
+        const gridX = Math.floor(jugador.x);
+        const gridY = Math.floor(jugador.y);
         if (mapaActual[gridY] && mapaActual[gridY][gridX] === 2) {
             nivelCompletado();
         }
@@ -677,12 +704,13 @@ function actualizarEnemigos() {
             Math.pow(jugador.y - enemigo.y, 2)
         );
 
-        // Cambiar estado según distancia (rango más amplio)
-        if (distancia < 12) {
+        // Cambiar estado según distancia (rango moderado)
+        if (distancia < 8) {
             enemigo.estado = 'persiguiendo';
-        } else {
+        } else if (distancia > 10) {
             enemigo.estado = 'patrulla';
         }
+        // Entre 8 y 10 mantiene el estado actual (evita cambios bruscos)
 
         // Comportamiento según estado
         if (enemigo.estado === 'persiguiendo' && enemigo.tipo === 'cazador') {
@@ -711,17 +739,17 @@ function actualizarEnemigos() {
                 }
             }
         } else if (enemigo.tipo === 'tirador') {
-            // El tirador dispara más rápido y con mayor alcance
+            // El tirador dispara con frecuencia moderada
             enemigo.cooldownDisparo--;
-            if (enemigo.cooldownDisparo <= 0 && distancia < 15) {
+            if (enemigo.cooldownDisparo <= 0 && distancia < 10) {
                 crearProyectil(enemigo);
-                enemigo.cooldownDisparo = 90; // 1.5 segundos (más rápido)
+                enemigo.cooldownDisparo = 120; // 2 segundos entre disparos
             }
         }
 
         // Verificar colisión con jugador
         if (distancia < 0.6 && !jugador.invulnerable) {
-            recibirDaño(35);
+            recibirDaño(25);  // Daño moderado al chocar con enemigos
         }
     });
 }
@@ -735,8 +763,8 @@ function crearProyectil(enemigo) {
         proyectiles.push({
             x: enemigo.x,
             y: enemigo.y,
-            velocidadX: (dx / dist) * 0.15,  // Proyectiles más rápidos
-            velocidadY: (dy / dist) * 0.15
+            velocidadX: (dx / dist) * 0.12,  // Proyectiles a velocidad moderada
+            velocidadY: (dy / dist) * 0.12
         });
 
         try {
@@ -765,7 +793,7 @@ function actualizarProyectiles() {
         );
 
         if (distancia < 0.5 && !jugador.invulnerable) {
-            recibirDaño(20);
+            recibirDaño(18);  // Daño moderado de proyectiles
             return false;
         }
 
@@ -776,7 +804,7 @@ function actualizarProyectiles() {
 function recibirDaño(cantidad) {
     jugador.vidaActual -= cantidad;
     jugador.invulnerable = true;
-    jugador.tiempoInvulnerable = 40; // 0.67 segundos (reducido para mayor dificultad)
+    jugador.tiempoInvulnerable = 60; // 1 segundo de invulnerabilidad
 
     try {
         sonidos.daño.currentTime = 0;
@@ -790,11 +818,11 @@ function recibirDaño(cantidad) {
         } else {
             // Reiniciar posición y vida con invulnerabilidad temporal
             const datosNivel = niveles[nivelActual];
-            jugador.x = datosNivel.jugadorInicio.x;
-            jugador.y = datosNivel.jugadorInicio.y;
+            jugador.x = datosNivel.jugadorInicio.x + 0.5;
+            jugador.y = datosNivel.jugadorInicio.y + 0.5;
             jugador.vidaActual = jugador.vidaMaxima;
             jugador.invulnerable = true;
-            jugador.tiempoInvulnerable = 90; // 1.5 segundos al reaparacer
+            jugador.tiempoInvulnerable = 120; // 2 segundos al reaparacer
         }
     }
 
@@ -803,6 +831,7 @@ function recibirDaño(cantidad) {
 
 function gameOver() {
     pantallaActual = PANTALLAS.GAME_OVER;
+    opcionSeleccionada = 0;
 
     if (intervaloTiempo) {
         clearInterval(intervaloTiempo);
@@ -815,6 +844,7 @@ function gameOver() {
 
 function nivelCompletado() {
     pantallaActual = PANTALLAS.VICTORIA;
+    opcionSeleccionada = 0;
 
     if (intervaloTiempo) {
         clearInterval(intervaloTiempo);
@@ -853,27 +883,122 @@ function actualizarHUD() {
 function reiniciarNivel() {
     cargarNivel(nivelActual);
     pantallaActual = PANTALLAS.JUGANDO;
+    opcionSeleccionada = 0;
 }
 
 function volverAlMenu() {
     pantallaActual = PANTALLAS.INICIO;
+    opcionSeleccionada = 0;
     document.getElementById('hud').classList.add('oculto');
     if (intervaloTiempo) {
         clearInterval(intervaloTiempo);
     }
 }
 
+function ejecutarOpcionMenu() {
+    if (pantallaActual === PANTALLAS.INICIO) {
+        if (opcionSeleccionada === 0) {
+            // Jugar
+            cargarNivel(1);
+            pantallaActual = PANTALLAS.JUGANDO;
+        } else if (opcionSeleccionada === 1) {
+            // Seleccionar nivel
+            pantallaActual = PANTALLAS.SELECCION_NIVEL;
+            opcionSeleccionada = 0;
+        }
+    } else if (pantallaActual === PANTALLAS.SELECCION_NIVEL) {
+        if (opcionSeleccionada >= 0 && opcionSeleccionada <= 2) {
+            // Seleccionar nivel 1, 2 o 3
+            const nivel = opcionSeleccionada + 1;
+            if (nivel <= nivelesDesbloqueados) {
+                cargarNivel(nivel);
+                pantallaActual = PANTALLAS.JUGANDO;
+            }
+        } else if (opcionSeleccionada === 3) {
+            // Volver
+            pantallaActual = PANTALLAS.INICIO;
+            opcionSeleccionada = 0;
+        }
+    } else if (pantallaActual === PANTALLAS.GAME_OVER) {
+        if (opcionSeleccionada === 0) {
+            // Reintentar
+            reiniciarNivel();
+        } else if (opcionSeleccionada === 1) {
+            // Menú principal
+            volverAlMenu();
+        }
+    } else if (pantallaActual === PANTALLAS.VICTORIA) {
+        if (nivelActual < 3) {
+            if (opcionSeleccionada === 0) {
+                // Siguiente nivel
+                cargarNivel(nivelActual + 1);
+                pantallaActual = PANTALLAS.JUGANDO;
+                opcionSeleccionada = 0;
+            } else if (opcionSeleccionada === 1) {
+                // Menú principal
+                volverAlMenu();
+            }
+        } else {
+            // Nivel 3 completado - solo opción de volver al menú
+            volverAlMenu();
+        }
+    }
+}
+
 // ==================== EVENTOS ====================
 
-// Controles del teclado (FLECHAS)
+// Controles del teclado (WASD y FLECHAS)
 const teclas = {};
 
 document.addEventListener('keydown', (e) => {
     teclas[e.key] = true;
+
+    // Navegación en menús
+    if (pantallaActual !== PANTALLAS.JUGANDO) {
+        // Si completó el nivel 3, solo hay un botón (volver al menú)
+        const juegoCompletado = pantallaActual === PANTALLAS.VICTORIA && nivelActual >= 3;
+
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+            e.preventDefault();
+            if (!juegoCompletado) {
+                opcionSeleccionada--;
+                if (opcionSeleccionada < 0) {
+                    if (pantallaActual === PANTALLAS.SELECCION_NIVEL) {
+                        opcionSeleccionada = 3; // 3 niveles + volver
+                    } else {
+                        opcionSeleccionada = 1; // 2 opciones en otros menús
+                    }
+                }
+            }
+        } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            if (!juegoCompletado) {
+                opcionSeleccionada++;
+                if (pantallaActual === PANTALLAS.SELECCION_NIVEL) {
+                    if (opcionSeleccionada > 3) opcionSeleccionada = 0;
+                } else {
+                    if (opcionSeleccionada > 1) opcionSeleccionada = 0;
+                }
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            ejecutarOpcionMenu();
+        }
+    }
+
+    // Prevenir scroll con flechas y WASD durante el juego
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(e.key)) {
+        e.preventDefault();
+    }
 });
 
 document.addEventListener('keyup', (e) => {
     teclas[e.key] = false;
+
+    // Prevenir scroll con flechas y WASD durante el juego
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', 'W', 'A', 'S', 'D'].includes(e.key)) {
+        e.preventDefault();
+    }
 });
 
 // Click en canvas
@@ -945,12 +1070,12 @@ document.getElementById('btn-reiniciar').addEventListener('click', () => {
 function loop() {
     tiempoAnimacion += 16;
 
-    // Procesar movimiento con flechas
+    // Procesar movimiento con flechas y WASD
     if (pantallaActual === PANTALLAS.JUGANDO) {
-        if (teclas['ArrowUp']) moverJugador(0, -1);
-        if (teclas['ArrowDown']) moverJugador(0, 1);
-        if (teclas['ArrowLeft']) moverJugador(-1, 0);
-        if (teclas['ArrowRight']) moverJugador(1, 0);
+        if (teclas['ArrowUp'] || teclas['w'] || teclas['W']) moverJugador(0, -1);
+        if (teclas['ArrowDown'] || teclas['s'] || teclas['S']) moverJugador(0, 1);
+        if (teclas['ArrowLeft'] || teclas['a'] || teclas['A']) moverJugador(-1, 0);
+        if (teclas['ArrowRight'] || teclas['d'] || teclas['D']) moverJugador(1, 0);
 
         // Actualizar invulnerabilidad
         if (jugador.invulnerable) {
