@@ -158,12 +158,6 @@ Abre `http://localhost:8000` en tu navegador
 - ✅ Game Over con opciones de reinicio
 - ✅ Victoria con estadísticas finales
 
-### Sistema de Enemigos con IA
-```javascript
-// Dos tipos de enemigos:
-1. Cazador (Púrpura) - Patrulla y persigue al jugador
-2. Tirador (Púrpura con punto blanco) - Dispara proyectiles
-```
 
 **Comportamiento:**
 - Estado "patrulla" cuando el jugador está lejos
@@ -193,70 +187,8 @@ Nivel 2: Lava (rojo/naranja, fondo rojizo)
 Nivel 3: Bosque (verde, fondo verde oscuro)
 ```
 
----
 
-## 🎨 Paleta de Colores por Tema
 
-### Nivel 1 - Neón Azul
-- Fondo: `#0a0a1a` → `#1a1a2e`
-- Paredes: `#00d4ff` (Cian brillante)
-- Jugador: `#00ffff` (Cian)
-- Enemigos: `#ff00ff` (Magenta)
-- Portal: `#00ff00` (Verde neón)
-
-### Nivel 2 - Lava
-- Fondo: `#1a0000` → `#3d0000`
-- Paredes: `#ff4500` (Naranja fuego)
-- Jugador: `#ffaa00` (Dorado)
-- Enemigos: `#ff0000` (Rojo intenso)
-- Portal: `#00ff00` (Verde)
-
-### Nivel 3 - Bosque Oscuro
-- Fondo: `#0a1a0a` → `#1a2e1a`
-- Paredes: `#2d5016` (Verde musgo)
-- Jugador: `#90ee90` (Verde claro)
-- Enemigos: `#8b0000` (Rojo sangre)
-- Portal: `#ffff00` (Amarillo)
-
----
-
-## 📊 Niveles de Dificultad
-
-| Nivel | Enemigos | Cazadores | Tiradores | Tema |
-|-------|----------|-----------|-----------|------|
-| 1 | 2 | 1 | 1 | Neón Azul |
-| 2 | 3 | 2 | 1 | Lava |
-| 3 | 4 | 2 | 2 | Bosque Oscuro |
-
----
-
-## 🎓 Conceptos de Programación Implementados
-
-### Game Loop
-- `requestAnimationFrame` para 60 FPS constantes
-- Sistema de tiempo delta para animaciones
-
-### Detección de Colisiones
-- Colisión circular (jugador con enemigos)
-- Colisión de punto (proyectiles)
-- Colisión con grid (paredes del laberinto)
-
-### Inteligencia Artificial
-- Sistema de estados (patrulla/persecución)
-- Pathfinding básico hacia el jugador
-- Cooldowns y timers
-
-### Física del Juego
-- Vectores de velocidad normalizados
-- Movimiento con interpolación
-- Sistema de proyectiles balísticos
-
-### Gestión de Estados
-- Máquina de estados para pantallas
-- Sistema de eventos del DOM
-- Gestión de input con objeto de teclas
-
----
 
 ## 📝 Código Limpio
 
@@ -272,12 +204,6 @@ Nivel 3: Bosque (verde, fondo verde oscuro)
 7. Loop principal
 ```
 
-### Nomenclatura en Español
-- Variables descriptivas: `jugador`, `enemigos`, `proyectiles`
-- Funciones claras: `dibujarBarraVida()`, `recibirDaño()`, `moverJugador()`
-- Comentarios explicativos en puntos clave
-
----
 
 ## 🐛 Debugging y Testing
 
@@ -294,7 +220,6 @@ Para probar el juego:
 
 ✅ **Juego completamente funcional**
 ✅ **3 niveles únicos con temas visuales**
-✅ **IA de enemigos con 2 comportamientos**
 ✅ **Sistema completo de combate**
 ✅ **Efectos visuales y sonoros**
 ✅ **HUD profesional**
@@ -305,15 +230,8 @@ Para probar el juego:
 
 ## 👨‍💻 Autor
 
-Desarrollado como proyecto educativo universitario
+Alan Emmanuel Ortiz Angulo
 
----
-
-## 📄 Licencia
-
-Este proyecto es de código abierto y está disponible para fines educativos.
-
----
 
 ## 🎮 ¡A Jugar!
 
