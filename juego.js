@@ -38,7 +38,8 @@ let jugador = {
     vidaActual: 100,
     invulnerable: false,
     tiempoInvulnerable: 0,
-    velocidad: 0.15
+    velocidad: 0.12,
+    radio: 0.35  // Radio del jugador en celdas
 };
 
 // Listas de entidades
@@ -584,18 +585,19 @@ function cargarNivel(nivel) {
     jugador.vidaActual = jugador.vidaMaxima;
     jugador.invulnerable = false;
 
-    // Crear enemigos
+    // Crear enemigos con mayor dificultad
     enemigos = datosNivel.enemigos.map(e => ({
         x: e.x,
         y: e.y,
         tipo: e.tipo,
         direccionX: 0,
         direccionY: 0,
-        velocidad: e.tipo === 'cazador' ? 0.04 : 0.03,
+        velocidad: e.tipo === 'cazador' ? 0.08 : 0.05,  // Velocidad aumentada
         cooldownDisparo: 0,
         estado: 'patrulla',
         objetivoX: e.x,
-        objetivoY: e.y
+        objetivoY: e.y,
+        radio: 0.3  // Radio para colisiones
     }));
 
     // Limpiar proyectiles
@@ -618,8 +620,8 @@ function moverJugador(dx, dy) {
     const nuevaX = jugador.x + dx * jugador.velocidad;
     const nuevaY = jugador.y + dy * jugador.velocidad;
 
-    // Verificar colisión con paredes
-    if (!hayColision(nuevaX, nuevaY)) {
+    // Verificar colisión circular con paredes
+    if (!hayColisionCircular(nuevaX, nuevaY, jugador.radio)) {
         jugador.x = nuevaX;
         jugador.y = nuevaY;
 
@@ -642,6 +644,29 @@ function hayColision(x, y) {
     return mapaActual[gridY][gridX] === 1;
 }
 
+// Colisión circular más precisa
+function hayColisionCircular(x, y, radio) {
+    // Verificar los 4 puntos cardinales del círculo
+    const puntos = [
+        { x: x, y: y - radio },           // arriba
+        { x: x, y: y + radio },           // abajo
+        { x: x - radio, y: y },           // izquierda
+        { x: x + radio, y: y },           // derecha
+        { x: x - radio * 0.7, y: y - radio * 0.7 },  // diagonal superior izq
+        { x: x + radio * 0.7, y: y - radio * 0.7 },  // diagonal superior der
+        { x: x - radio * 0.7, y: y + radio * 0.7 },  // diagonal inferior izq
+        { x: x + radio * 0.7, y: y + radio * 0.7 }   // diagonal inferior der
+    ];
+
+    for (let punto of puntos) {
+        if (hayColision(punto.x, punto.y)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function actualizarEnemigos() {
     if (pantallaActual !== PANTALLAS.JUGANDO) return;
 
@@ -652,8 +677,8 @@ function actualizarEnemigos() {
             Math.pow(jugador.y - enemigo.y, 2)
         );
 
-        // Cambiar estado según distancia
-        if (distancia < 8) {
+        // Cambiar estado según distancia (rango más amplio)
+        if (distancia < 12) {
             enemigo.estado = 'persiguiendo';
         } else {
             enemigo.estado = 'patrulla';
@@ -661,7 +686,7 @@ function actualizarEnemigos() {
 
         // Comportamiento según estado
         if (enemigo.estado === 'persiguiendo' && enemigo.tipo === 'cazador') {
-            // Perseguir al jugador
+            // Perseguir al jugador con colisión circular
             const dx = jugador.x - enemigo.x;
             const dy = jugador.y - enemigo.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -670,22 +695,32 @@ function actualizarEnemigos() {
                 const nuevaX = enemigo.x + (dx / dist) * enemigo.velocidad;
                 const nuevaY = enemigo.y + (dy / dist) * enemigo.velocidad;
 
-                if (!hayColision(nuevaX, nuevaY)) {
+                // Usar colisión circular para enemigos
+                if (!hayColisionCircular(nuevaX, nuevaY, enemigo.radio)) {
                     enemigo.x = nuevaX;
                     enemigo.y = nuevaY;
+                } else {
+                    // Si hay colisión frontal, intentar moverse lateral
+                    const nuevaX2 = enemigo.x + (dy / dist) * enemigo.velocidad * 0.5;
+                    const nuevaY2 = enemigo.y + (-dx / dist) * enemigo.velocidad * 0.5;
+
+                    if (!hayColisionCircular(nuevaX2, nuevaY2, enemigo.radio)) {
+                        enemigo.x = nuevaX2;
+                        enemigo.y = nuevaY2;
+                    }
                 }
             }
         } else if (enemigo.tipo === 'tirador') {
-            // El tirador dispara al jugador
+            // El tirador dispara más rápido y con mayor alcance
             enemigo.cooldownDisparo--;
-            if (enemigo.cooldownDisparo <= 0 && distancia < 10) {
+            if (enemigo.cooldownDisparo <= 0 && distancia < 15) {
                 crearProyectil(enemigo);
-                enemigo.cooldownDisparo = 120; // 2 segundos aproximadamente
+                enemigo.cooldownDisparo = 90; // 1.5 segundos (más rápido)
             }
         }
 
         // Verificar colisión con jugador
-        if (distancia < 0.7 && !jugador.invulnerable) {
+        if (distancia < 0.6 && !jugador.invulnerable) {
             recibirDaño(35);
         }
     });
@@ -700,8 +735,8 @@ function crearProyectil(enemigo) {
         proyectiles.push({
             x: enemigo.x,
             y: enemigo.y,
-            velocidadX: (dx / dist) * 0.12,
-            velocidadY: (dy / dist) * 0.12
+            velocidadX: (dx / dist) * 0.15,  // Proyectiles más rápidos
+            velocidadY: (dy / dist) * 0.15
         });
 
         try {
@@ -741,7 +776,7 @@ function actualizarProyectiles() {
 function recibirDaño(cantidad) {
     jugador.vidaActual -= cantidad;
     jugador.invulnerable = true;
-    jugador.tiempoInvulnerable = 60; // 1 segundo de invulnerabilidad
+    jugador.tiempoInvulnerable = 40; // 0.67 segundos (reducido para mayor dificultad)
 
     try {
         sonidos.daño.currentTime = 0;
@@ -753,11 +788,13 @@ function recibirDaño(cantidad) {
         if (jugador.vidas <= 0) {
             gameOver();
         } else {
-            // Reiniciar posición y vida
+            // Reiniciar posición y vida con invulnerabilidad temporal
             const datosNivel = niveles[nivelActual];
             jugador.x = datosNivel.jugadorInicio.x;
             jugador.y = datosNivel.jugadorInicio.y;
             jugador.vidaActual = jugador.vidaMaxima;
+            jugador.invulnerable = true;
+            jugador.tiempoInvulnerable = 90; // 1.5 segundos al reaparacer
         }
     }
 
